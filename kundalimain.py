@@ -4,9 +4,9 @@ import random
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS
+CORS(app)  # Enable CORS for all routes
 
-# Zodiac Finder
+# ---------- Zodiac Finder ----------
 def get_zodiac(day, month):
     if (month == 3 and day >= 21) or (month == 4 and day <= 19): return "Aries ♈"
     elif (month == 4 and day >= 20) or (month == 5 and day <= 20): return "Taurus ♉"
@@ -21,7 +21,7 @@ def get_zodiac(day, month):
     elif (month == 1 and day >= 20) or (month == 2 and day <= 18): return "Aquarius ♒"
     else: return "Pisces ♓"
 
-# Traits & Quotes
+# ---------- Personality Traits & Quotes ----------
 traits = [
     "✨ Naturally charming personality", "💪 Strong and determined mindset",
     "🌸 Kind-hearted and caring nature", "🔥 Confident and fearless attitude",
@@ -43,27 +43,42 @@ quotes = [
     "Great things are coming into your life."
 ]
 
-# API route
+# ---------- Root route ----------
+@app.route('/')
+def home():
+    return jsonify({
+        "message": "🚀 Kundali API is running!",
+        "instructions": {
+            "POST /kundali": {
+                "name": "Your name",
+                "dob": "DD-MM-YYYY",
+                "place": "Birthplace"
+            }
+        }
+    })
+
+# ---------- Kundali route ----------
 @app.route('/kundali', methods=['POST'])
 def kundali():
     data = request.json
     name = data.get("name")
     dob = data.get("dob")
     place = data.get("place")
+    
     if not all([name, dob, place]):
         return jsonify({"error": "Please provide name, dob, and place"}), 400
-
+    
     try:
         date_obj = datetime.strptime(dob, "%d-%m-%Y")
         day = date_obj.day
         month = date_obj.month
     except ValueError:
         return jsonify({"error": "Invalid DOB format. Use DD-MM-YYYY"}), 400
-
+    
     zodiac = get_zodiac(day, month)
     selected_traits = random.sample(traits, 3)
     selected_quote = random.choice(quotes)
-
+    
     return jsonify({
         "name": name,
         "place": place,
@@ -72,7 +87,6 @@ def kundali():
         "quote": selected_quote
     })
 
-# Optional: local test
+# ---------- Run locally ----------
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
-
